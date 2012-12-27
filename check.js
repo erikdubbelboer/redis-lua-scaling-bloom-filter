@@ -15,7 +15,7 @@ var checksha = '';
 
 var start;
 
-var count = 200000;
+var count = 500000;
 var found = 0;
 
 

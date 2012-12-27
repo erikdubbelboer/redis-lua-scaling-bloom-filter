@@ -17,15 +17,19 @@ for n=1, num, 1 do
   local bits   = math.floor(-(entries * math.log(precision * math.pow(0.5, n))) / 0.09061905831)
   local hashes = math.floor(0.3010299957 * bits / entries)
   local key    = KEYS[1] .. ':' .. n
-  local cnt    = 0
+  local found  = true
 
   for i=1, hashes, 1 do
     local j   = i % 2
     local bit = (h[j] + i * h[2 + j]) % bits
-    cnt = cnt + redis.call('GETBIT', key, bit)
+
+    if redis.call('GETBIT', key, bit) == 0 then
+      found = false
+      break
+    end
   end
 
-  if cnt == hashes then
+  if found then
     return 1
   end
 end
