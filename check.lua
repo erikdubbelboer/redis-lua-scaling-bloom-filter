@@ -6,24 +6,27 @@ local num       = redis.call('GET', KEYS[1] .. ':num')
 num = math.ceil(num / entries)
 
 local hash = redis.sha1hex(ARGV[3])
-local h    = { }
-
-h[0] = tonumber(string.sub(hash, 0 , 8 ), 16)
-h[1] = tonumber(string.sub(hash, 8 , 16), 16)
-h[2] = tonumber(string.sub(hash, 16, 24), 16)
-h[3] = tonumber(string.sub(hash, 24, 32), 16)
+local h0   = tonumber(string.sub(hash, 0 , 8 ), 16)
+local h1   = tonumber(string.sub(hash, 8 , 16), 16)
+local h2   = tonumber(string.sub(hash, 16, 24), 16)
+local h3   = tonumber(string.sub(hash, 24, 32), 16)
 
 for n=1, num, 1 do
   local bits   = math.floor(-(entries * math.log(precision * math.pow(0.5, n))) / 0.09061905831)
-  local hashes = math.floor(0.3010299957 * bits / entries)
+  local hashes = math.floor(0.07525749892 * bits / entries)
   local key    = KEYS[1] .. ':' .. n
   local found  = true
 
-  for i=1, hashes, 1 do
-    local j   = i % 2
-    local bit = (h[j] + i * h[2 + j]) % bits
+  for i=0, hashes, 4 do
+    local bit0 = (h0 +  i      * h2) % bits
+    local bit1 = (h1 + (i + 1) * h2) % bits
+    local bit2 = (h0 + (i + 2) * h3) % bits
+    local bit3 = (h1 + (i + 3) * h3) % bits
 
-    if redis.call('GETBIT', key, bit) == 0 then
+    if redis.call('GETBIT', key, bit0) == 0 or
+       redis.call('GETBIT', key, bit1) == 0 or
+       redis.call('GETBIT', key, bit2) == 0 or
+       redis.call('GETBIT', key, bit3) == 0 then
       found = false
       break
     end
