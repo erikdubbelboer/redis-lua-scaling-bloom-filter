@@ -17,7 +17,7 @@ var checksha = '';
 
 var start;
 
-var count = 10000;
+var count = 100000;
 var added = [];
 
 
