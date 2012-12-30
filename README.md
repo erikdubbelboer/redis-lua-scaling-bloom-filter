@@ -53,11 +53,11 @@ eval "check.lua source here" test 10000 0.01 something
 Tests
 -----
 
-`
+```
 npm install redis
 node add.js
 node check.js
-`
+```
 
 `add.js` will add elements to a filter named test and then check if the elements are part of the filter.
 
@@ -75,29 +75,28 @@ This script assumes Redis is running on the default port and `redis-cli` and `re
 
 This is the output on my Intel Xeon E5620 @ 2.40GHz:
 ```
-add.lua
-====== evalsha 021a8c4ea22f27343516a2d5b7cf7a6e7cb7eba5 1 UkOXXadHW5 1000000 0.01 :rand:000000000000 ======
-  200000 requests completed in 11.38 seconds
+====== evalsha ba52b18eddd56dc34113319ca7b4a66244caa623 1 RKvUxAjWkU 1000000 0.01 :rand:000000000000 ======
+  200000 requests completed in 10.92 seconds
   20 parallel clients
   3 bytes payload
   keep alive: 1
 
-22.07% <= 1 milliseconds
-99.66% <= 2 milliseconds
-100.00% <= 3 milliseconds
-100.00% <= 3 milliseconds
-17577.78 requests per second
+34.48% <= 1 milliseconds
+99.92% <= 2 milliseconds
+99.99% <= 3 milliseconds
+100.00% <= 4 milliseconds
+18313.34 requests per second
 
 check.lua
-====== evalsha d4f518002ef0e4cea0648cfb11b4f1e18b79eb77 1 UkOXXadHW5 1000000 0.01 :rand:000000000000 ======
-  200000 requests completed in 11.05 seconds
+====== evalsha ae05a3d2a7106feb7085bccd9fbf34178a686151 1 RKvUxAjWkU 1000000 0.01 :rand:000000000000 ======
+  200000 requests completed in 11.37 seconds
   20 parallel clients
   3 bytes payload
   keep alive: 1
 
-28.70% <= 1 milliseconds
-99.95% <= 2 milliseconds
+21.13% <= 1 milliseconds
+99.83% <= 2 milliseconds
 100.00% <= 2 milliseconds
-18106.10 requests per second
+17587.06 requests per second
 ```
 
