@@ -8,15 +8,20 @@ var client = redis.createClient(6379, '127.0.0.1');
 
 var checksource = fs.readFileSync('check.lua', 'ascii');
 
-var entries   = 10000;
-var precision = 0.01;
+var entries   = process.argv[2] || 10000;
+var precision = process.argv[3] || 0.01;
 
 var checksha = '';
 
 var start;
 
-var count = 500000;
+var count = process.argv[4] || 100000;
 var found = 0;
+
+
+console.log('entries   = ' + entries);
+console.log('precision = ' + precision);
+console.log('count     = ' + count);
 
 
 function check(n) {
