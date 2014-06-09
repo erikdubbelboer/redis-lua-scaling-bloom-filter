@@ -4,13 +4,13 @@ redis-lua-scaling-bloom-filter
 
 `add.lua` and `check.lua` are two lua scripts for a [scaling bloom filter](http://en.wikipedia.org/wiki/Bloom_filter#Scalable_Bloom_filters) for [Redis](http://redis.io/)
 
-`layer-add.lua` and `later-check.lua` are two lua scripts for a layered [scaling bloom filter](http://en.wikipedia.org/wiki/Bloom_filter#Scalable_Bloom_filters) for [Redis](http://redis.io/)
+`layer-add.lua` and `later-check.lua` are two lua scripts for a [scaling layered bloom filter](https://en.wikipedia.org/wiki/Bloom_filter#Layered_Bloom_filters) for [Redis](http://redis.io/)
 
 The scripts are to be executed using the [EVAL](http://redis.io/commands/eval) command in Redis.
 
 _These scripts will probably not work on Redis cluster since the keys used inside the script aren't all passed as arguments!_
 
-The layered filters have a maximum number of 32 layers.
+The layered filter has a maximum number of 32 layers. You can modify this in the source.
 
 
 `add.lua` and `layer-add.lua`
