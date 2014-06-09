@@ -6,30 +6,36 @@ var redis = require('redis');
 
 var client = redis.createClient(6379, '127.0.0.1');
 
-var addsource   = fs.readFileSync('add.lua', 'ascii');
-var checksource = fs.readFileSync('check.lua', 'ascii');
+var addsource   = fs.readFileSync('layer-add.lua', 'ascii');
+var checksource = fs.readFileSync('layer-check.lua', 'ascii');
 
 var entries   = process.argv[2] || 10000;
 var precision = process.argv[3] || 0.01;
+var layers    = process.argv[5] || 10;
 
 var addsha   = '';
 var checksha = '';
 
 var start;
 
-var count = process.argv[4] || 100000;
-var added = [];
+var count     = process.argv[4] || 100000;
+var added     = [];
+var wrong     = 0;
+var layersize = count / layers;
 
 
 console.log('entries   = ' + entries);
 console.log('precision = ' + precision);
 console.log('count     = ' + count);
+console.log('layers    = ' + layers);
 
 
 function check(n) {
   if (n == count) {
     var sec = count / ((Date.now() - start) / 1000);
     console.log(sec + ' per second');
+      
+    console.log((wrong / (count / 100)) + '% in wrong layer');
 
     console.log('done.');
     process.exit();
@@ -41,8 +47,11 @@ function check(n) {
       throw err;
     }
 
-    if (!found) {
-      console.log(added[n] + ' was not found!');
+    var layer = 1 + Math.floor(n / layersize);
+
+    if (found != layer) {
+      //console.log(added[n] + ' expected in ' + layer + ' found in ' + found + '!');
+      ++wrong;
     }
 
     check(n + 1);
@@ -50,9 +59,9 @@ function check(n) {
 }
 
 
-function add(n) {
+function add(n, layer, id) {
   if (n == count) {
-    var sec = count / ((Date.now() - start) / 1000);
+    var sec = (count * (layers / 2)) / ((Date.now() - start) / 1000);
     console.log(sec + ' per second');
 
     console.log('checking...');
@@ -63,16 +72,26 @@ function add(n) {
     return;
   }
 
-  var id = Math.round(Math.random() * 4000000000);
+  if (!id) {
+    id = Math.round(Math.random() * 4000000000);
 
-  added.push(id);
+    added.push(id);
+  }
+
+  if (!layer) {
+    layer = 1 + Math.floor(n / layersize);
+  }
 
   client.evalsha(addsha, 0, 'test', entries, precision, id, function(err) {
     if (err) {
       throw err;
     }
 
-    add(n + 1);
+    if (layer == 1) {
+      add(n + 1);
+    } else {
+      add(n, layer - 1, id)
+    }
   });
 }
 

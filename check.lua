@@ -1,15 +1,15 @@
 
-local entries   = ARGV[1]
-local precision = ARGV[2]
-local index     = redis.call('GET', KEYS[1] .. ':count')
+local entries   = ARGV[2]
+local precision = ARGV[3]
+local index     = redis.call('GET', ARGV[1] .. ':count')
 
 if not index then
   return 0
 end
 
-index     = math.ceil(redis.call('GET', KEYS[1] .. ':count') / entries)
+index = math.ceil(index / entries)
 
-local hash = redis.sha1hex(ARGV[3])
+local hash = redis.sha1hex(ARGV[4])
 
 -- This uses a variation on:
 -- 'Less Hashing, Same Performance: Building a Better Bloom Filter'
@@ -32,7 +32,7 @@ for i=1, maxk do
 end
 
 for n=1, index do
-  local key   = KEYS[1] .. ':' .. n
+  local key   = ARGV[1] .. ':' .. n
   local found = true
 
   -- 0.480453013 = ln(2)^2

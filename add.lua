@@ -1,8 +1,9 @@
 
-local entries   = ARGV[1]
-local precision = ARGV[2]
-local index     = math.ceil(redis.call('INCR', KEYS[1] .. ':count') / entries)
-local key       = KEYS[1] .. ':' .. index
+local entries   = ARGV[2]
+local precision = ARGV[3]
+local hash      = redis.sha1hex(ARGV[4])
+local index     = math.ceil(redis.call('INCR', ARGV[1] .. ':count') / entries)
+local key       = ARGV[1] .. ':' .. index
 
 -- Based on the math from: http://en.wikipedia.org/wiki/Bloom_filter#Probability_of_false_positives
 -- Combined with: http://www.sciencedirect.com/science/article/pii/S0020019006003127
@@ -11,8 +12,6 @@ local bits = math.floor(-(entries * math.log(precision * math.pow(0.5, index))) 
 
 -- 0.693147180 = ln(2)
 local k = math.floor(0.693147180 * bits / entries)
-
-local hash = redis.sha1hex(ARGV[3])
 
 -- This uses a variation on:
 -- 'Less Hashing, Same Performance: Building a Better Bloom Filter'
