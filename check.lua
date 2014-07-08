@@ -15,10 +15,10 @@ local hash = redis.sha1hex(ARGV[4])
 -- 'Less Hashing, Same Performance: Building a Better Bloom Filter'
 -- http://www.eecs.harvard.edu/~kirsch/pubs/bbbf/esa06.pdf
 local h = { }
-h[0] = tonumber(string.sub(hash, 0 , 8 ), 16)
-h[1] = tonumber(string.sub(hash, 8 , 16), 16)
-h[2] = tonumber(string.sub(hash, 16, 24), 16)
-h[3] = tonumber(string.sub(hash, 24, 32), 16)
+h[0] = tonumber(string.sub(hash, 1 , 8 ), 16)
+h[1] = tonumber(string.sub(hash, 9 , 16), 16)
+h[2] = tonumber(string.sub(hash, 17, 24), 16)
+h[3] = tonumber(string.sub(hash, 25, 32), 16)
 
 -- Based on the math from: http://en.wikipedia.org/wiki/Bloom_filter#Probability_of_false_positives
 -- Combined with: http://www.sciencedirect.com/science/article/pii/S0020019006003127
