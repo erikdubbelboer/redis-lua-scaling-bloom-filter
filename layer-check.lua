@@ -14,19 +14,23 @@ h[3] = tonumber(string.sub(hash, 25, 32), 16)
 
 for layer=1,32 do
   local key   = ARGV[1] .. ':' .. layer .. ':'
-  local index = redis.call('GET', key .. 'count')
+  local count = redis.call('GET', key .. 'count')
 
-  if not index then
+  if not count then
     return layer - 1
   end
 
-  index = math.ceil(index / entries)
+  local factor = math.ceil((entries + count) / entries)
+  -- 0.69314718055995 = ln(2)
+  local index  = math.ceil(math.log(factor) / 0.69314718055995)
+  local scale  = math.pow(2, index - 1) * entries
+
 
   -- Based on the math from: http://en.wikipedia.org/wiki/Bloom_filter#Probability_of_false_positives
   -- Combined with: http://www.sciencedirect.com/science/article/pii/S0020019006003127
-  -- 0.693147180 = ln(2)
-  -- 0.480453013 = ln(2)^2
-  local maxk = math.floor(0.693147180 * math.floor((entries * math.log(precision * math.pow(0.5, index))) / -0.480453013) / entries)
+  -- 0.69314718055995 = ln(2)
+  -- 0.4804530139182 = ln(2)^2
+  local maxk = math.floor(0.69314718055995 * math.floor((scale * math.log(precision * math.pow(0.5, index))) / -0.4804530139182) / scale)
   local b    = { }
 
   for i=1, maxk do
@@ -38,12 +42,13 @@ for layer=1,32 do
   for n=1, index do
     local keyn  = key .. n
     local found = true
+    local scale = math.pow(2, n - 1) * entries
 
-    -- 0.480453013 = ln(2)^2
-    local bits = math.floor((entries * math.log(precision * math.pow(0.5, n))) / -0.480453013)
+    -- 0.4804530139182 = ln(2)^2
+    local bits = math.floor((scale * math.log(precision * math.pow(0.5, n))) / -0.4804530139182)
 
-    -- 0.693147180 = ln(2)
-    local k = math.floor(0.693147180 * bits / entries)
+    -- 0.69314718055995 = ln(2)
+    local k = math.floor(0.69314718055995 * bits / scale)
 
     for i=1, k do
       if redis.call('GETBIT', keyn, b[i] % bits) == 0 then

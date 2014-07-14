@@ -13,18 +13,21 @@ h[2] = tonumber(string.sub(hash, 17, 24), 16)
 h[3] = tonumber(string.sub(hash, 25, 32), 16)
 
 for layer=1,32 do
-  local key   = ARGV[1] .. ':' .. layer .. ':'
-  local index = math.ceil(redis.call('INCR', key .. 'count') / entries)
+  local key    = ARGV[1] .. ':' .. layer .. ':'
+  local factor = math.ceil((entries + redis.call('INCR', key .. 'count')) / entries)
+  -- 0.69314718055995 = ln(2)
+  local index  = math.ceil(math.log(factor) / 0.69314718055995)
+  local scale  = math.pow(2, index - 1) * entries
 
   key = key .. index
 
   -- Based on the math from: http://en.wikipedia.org/wiki/Bloom_filter#Probability_of_false_positives
   -- Combined with: http://www.sciencedirect.com/science/article/pii/S0020019006003127
-  -- 0.480453013 = ln(2)^2
-  local bits = math.floor(-(entries * math.log(precision * math.pow(0.5, index))) / 0.480453013)
+  -- 0.4804530139182 = ln(2)^2
+  local bits = math.floor(-(scale * math.log(precision * math.pow(0.5, index))) / 0.4804530139182)
 
-  -- 0.693147180 = ln(2)
-  local k = math.floor(0.693147180 * bits / entries)
+  -- 0.69314718055995 = ln(2)
+  local k = math.floor(0.69314718055995 * bits / scale)
 
   local found = true
   for i=1, k do
