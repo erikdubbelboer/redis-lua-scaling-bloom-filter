@@ -31,7 +31,7 @@ for i=1, maxk do
 end
 
 -- Only do this if we have data already.
-if count then
+if index > 1 then
   -- The last fiter will be handled below.
   for n=1, index-1 do
     local key   = ARGV[1] .. ':' .. n
