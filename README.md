@@ -72,8 +72,9 @@ Tests
 -----
 
 ```
-$ npm install redis
+$ npm install redis srand
 $ node add.js
+$ node cas.js
 $ node check.js
 $ # or/and
 $ node layer-add.js
