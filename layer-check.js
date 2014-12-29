@@ -2,6 +2,7 @@
 var fs = require('fs');
 
 var redis = require('redis');
+var srand = require('srand');
 
 
 var client = redis.createClient(6379, '127.0.0.1');
@@ -17,11 +18,15 @@ var start;
 
 var count = process.argv[4] || 100000;
 var found = [];
+var added = 0;
 
 
 console.log('entries   = ' + entries);
-console.log('precision = ' + precision);
+console.log('precision = ' + (precision * 100) + '%');
 console.log('count     = ' + count);
+
+
+srand.seed(2);
 
 
 function check(n) {
@@ -31,16 +36,12 @@ function check(n) {
 
     var total = 0;
 
-    for (var i = 0; i < found.length; ++i) {
-      if (!found[i]) {
-        continue;
-      }
-
+    for (var i = 1; i < found.length; ++i) {
       total += found[i];
 
       console.log('layer ' + i + ': ' + (found[i] / (count / 100)) + '% false positives');
     }
-      
+
     console.log((total / (count / 100)) + '% false positives total');
 
     console.log('done.');
@@ -48,7 +49,14 @@ function check(n) {
     return;
   }
 
-  var id = Math.round(Math.random() * 4000000000);
+  // Mimic the same number of srand.random() calls as layer-add.js
+  // so we get the same id's if we use the same seed.
+  while (added > 100 && srand.random() < 0.3) {
+    srand.random();
+    ++added;
+  }
+  
+  var id = Math.ceil(srand.random() * 4000000000);
 
   client.evalsha(checksha, 0, 'test', entries, precision, id, function(err, layer) {
     if (err) {

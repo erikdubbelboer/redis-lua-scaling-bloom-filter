@@ -2,7 +2,7 @@
 redis-lua-scaling-bloom-filter
 ==============================
 
-`add.lua` and `check.lua` are two lua scripts for a [scaling bloom filter](http://en.wikipedia.org/wiki/Bloom_filter#Scalable_Bloom_filters) for [Redis](http://redis.io/)
+`add.lua`, `cas.lua` and `check.lua` are three lua scripts for a [scaling bloom filter](http://en.wikipedia.org/wiki/Bloom_filter#Scalable_Bloom_filters) for [Redis](http://redis.io/)
 
 `layer-add.lua` and `later-check.lua` are two lua scripts for a [scaling layered bloom filter](https://en.wikipedia.org/wiki/Bloom_filter#Layered_Bloom_filters) for [Redis](http://redis.io/)
 
@@ -13,15 +13,26 @@ _These scripts will probably not work on Redis cluster since the keys used insid
 The layered filter has a maximum number of 32 layers. You can modify this in the source.
 
 
-`add.lua` and `layer-add.lua`
------------------------------
+`add.lua`, `cas.lua` and `layer-add.lua`
+----------------------------------------
 
 The `add.lua` script adds a new element to the filter. It will create the filter when it doesn't exist yet.
 
-It expects 4 arguments.
+`cas.lua` does a Check And Set, this will not add the element if it doesn't already exist.
+`cas.lua` will return 1 if the element is added, 0 otherwise.
+Since we use a scaling filter adding an element using `add.lua` might cause the element
+to exist in multiple parts of the filter at the same time. `cas.lua` prevents this.
+Using only `cas.lua` the `:count` key of the filter will accurately count the number of elements added to the filter.
+Only using `cas.lua` will also lower the number of false positives by a small amount (less duplicates in the filter means less bits set).
+
+`layer-add.lua` does a similar thing to `cas.lua` since this is necessary for the layer part to work
+(need to check all the filters in a layer to see if it already exists in the layer).
+`layer-add.lua` will return the layer number the element was added to.
+
+These scripts expects 4 arguments.
 
 1. The base name of the keys to use.
-2. The initial size of the bloom filter (in number of items).
+2. The initial size of the bloom filter (in number of elements).
 3. The probability of false positives.
 4. The element to add to the filter.
 
@@ -37,12 +48,14 @@ eval "add.lua source here" 0 test 10000 0.01 something
 `check.lua` and `layer-check.lua`
 ---------------------------------
 
-The `check.lua` script check if an element is contained in the bloom filter.
+The `check.lua` and `layer-check.lua` scripts check if an element is contained in the bloom filter.
 
-It expects 4 arguments.
+`layer-check.lua` returns the layer the element was found in.
+
+These scripts expects 4 arguments.
 
 1. The base name of the keys to use.
-2. The initial size of the bloom filter (in number of items).
+2. The initial size of the bloom filter (in number of elements).
 3. The probability of false positives.
 4. The element to check for.
 
@@ -81,66 +94,63 @@ You can run `./benchmark.sh` and `./layer-benchmark.sh` to see how fast the scri
 
 This script assumes Redis is running on the default port and `redis-cli` and `redis-benchmark` are installed.
 
-This is the output on my 2.0GHz server:
+This is the outputs on my 2.3GHz 2012 MacBook Pro Retina:
 ```
 add.lua
-====== evalsha 4cfd53f462357c9f9b447d5cb65a70921ad7b288 0 DDLLmog7z8 1000000 0.01 :rand:000000000000 ======
-  200000 requests completed in 18.10 seconds
+====== evalsha ab31647b3931a68b3b93a7354a297ed273349d39 0 HSwVBmHECt 1000000 0.01 :rand:000000000000 ======
+  200000 requests completed in 8.27 seconds
   20 parallel clients
   3 bytes payload
   keep alive: 1
 
-1.00% <= 1 milliseconds
-75.33% <= 2 milliseconds
-93.89% <= 3 milliseconds
-98.62% <= 4 milliseconds
-100.00% <= 16 milliseconds
-11048.50 requests per second
+94.57% <= 1 milliseconds
+100.00% <= 2 milliseconds
+24175.03 requests per second
 
 
 check.lua
-====== evalsha 279aa74a8937e48a62f0caf9a39daef4e8161fe1 0 DDLLmog7z8 1000000 0.01 :rand:000000000000 ======
-  200000 requests completed in 15.02 seconds
+====== evalsha 437a3b0c6a452b5f7a1f10487974c002d41f4a04 0 HSwVBmHECt 1000000 0.01 :rand:000000000000 ======
+  200000 requests completed in 8.54 seconds
   20 parallel clients
   3 bytes payload
   keep alive: 1
 
-4.05% <= 1 milliseconds
-88.81% <= 2 milliseconds
-96.79% <= 3 milliseconds
-99.34% <= 4 milliseconds
-100.00% <= 27 milliseconds
-13314.69 requests per second
+92.52% <= 1 milliseconds
+100.00% <= 8 milliseconds
+23419.20 requests per second
 
 
 layer-add.lua
-====== evalsha e9bd911b897849625e253ca6bf36ef02379e2c17 0 WUeW9QPaGL 1000000 0.01 :rand:000000000000 ======
-  200000 requests completed in 39.83 seconds
+====== evalsha 7ae29948e3096dd064c22fcd8b628a5c77394b0c 0 ooPb5enskU 1000000 0.01 :rand:000000000000 ======
+  20000 requests completed in 12.61 seconds
   20 parallel clients
   3 bytes payload
   keep alive: 1
 
-30.97% <= 1 milliseconds
-77.07% <= 2 milliseconds
-89.23% <= 19 milliseconds
-94.54% <= 20 milliseconds
-98.94% <= 32 milliseconds
-100.00% <= 87 milliseconds
-5020.71 requests per second
+55.53% <= 12 milliseconds
+75.42% <= 13 milliseconds
+83.71% <= 14 milliseconds
+91.48% <= 15 milliseconds
+97.76% <= 16 milliseconds
+99.90% <= 24 milliseconds
+100.00% <= 24 milliseconds
+1586.04 requests per second
 
 
 layer-check.lua
-====== evalsha 5122b34c07dacf1d3c8d9328c82b6cd457bc89f3 0 WUeW9QPaGL 1000000 0.01 :rand:000000000000 ======
-  200000 requests completed in 208.87 seconds
+====== evalsha c1386438944daedfc4b5c06f79eadb6a83d4b4ea 0 ooPb5enskU 1000000 0.01 :rand:000000000000 ======
+  20000 requests completed in 11.13 seconds
   20 parallel clients
   3 bytes payload
   keep alive: 1
 
-0.01% <= 7 milliseconds
-94.77% <= 34 milliseconds
-98.34% <= 44 milliseconds
-98.95% <= 45 milliseconds
-100.00% <= 85 milliseconds
-957.56 requests per second
+0.00% <= 9 milliseconds
+74.12% <= 11 milliseconds
+80.43% <= 12 milliseconds
+83.93% <= 13 milliseconds
+97.43% <= 14 milliseconds
+99.89% <= 15 milliseconds
+100.00% <= 15 milliseconds
+1797.59 requests per second
 ```
 

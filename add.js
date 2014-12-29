@@ -2,6 +2,7 @@
 var fs = require('fs');
 
 var redis = require('redis');
+var srand = require('srand');
 
 
 var client = redis.createClient(6379, '127.0.0.1');
@@ -22,8 +23,11 @@ var added = [];
 
 
 console.log('entries   = ' + entries);
-console.log('precision = ' + precision);
+console.log('precision = ' + (precision * 100) + '%');
 console.log('count     = ' + count);
+
+
+srand.seed(1);
 
 
 function check(n) {
@@ -63,7 +67,7 @@ function add(n) {
     return;
   }
 
-  var id = Math.round(Math.random() * 4000000000);
+  var id = Math.ceil(srand.random() * 4000000000);
 
   added.push(id);
 
