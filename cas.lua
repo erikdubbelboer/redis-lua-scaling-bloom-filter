@@ -2,7 +2,7 @@
 -- Check And Set
 -- Check if the item is already present in one of the layers and
 -- only add the item if it wasn't.
--- Returns 1 if the item was added.
+-- Returns 1 if the item was already present.
 --
 -- If only this script is used to add items to the filter the :count
 -- key will accurately indicate the number of unique items added to 
