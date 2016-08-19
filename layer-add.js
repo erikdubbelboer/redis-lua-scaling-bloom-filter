@@ -36,7 +36,7 @@ function check(n) {
   if (n == added.length) {
     var sec = count / ((Date.now() - start) / 1000);
     console.log(sec + ' per second');
-      
+
     console.log((wrong / (count / 100)) + '% in a too high layer');
 
     console.log('done.');
@@ -69,7 +69,7 @@ function add(n) {
   if (n == count) {
     var sec = count / ((Date.now() - start) / 1000);
     console.log(sec + ' per second');
-    
+
     // This will never print 100% for layer 1 since false positives will
     // make some new items be added to higher layers right away.
     for (var i = 1; i < addto.length; ++i) {
@@ -77,30 +77,30 @@ function add(n) {
     }
 
     console.log('checking...');
-    
+
     start = Date.now();
 
     check(0);
     return;
   }
-  
+
   var i = 0;
-  
+
   // 30% of the time we add an item we already know,
   // pushing it up one layer.
   if (added.length > 100 && srand.random() < 0.3) {
     i = Math.floor(srand.random()*added.length);
   } else {
     var id = Math.ceil(srand.random() * 4000000000);
-    
+
     i = added.push([id, 0]) - 1;
   }
-  
+
   client.evalsha(addsha, 0, 'test', entries, precision, added[i][0], function(err, layer) {
     if (err) {
       throw err;
     }
-    
+
     if (layer == 0) {
       throw new Error('We have run out of layers!');
     } else {
@@ -110,9 +110,9 @@ function add(n) {
         addto[layer] = 1;
       }
     }
-    
+
     added[i][1]++;
-    
+
     add(n + 1);
   });
 }
@@ -125,6 +125,7 @@ function load() {
     }
 
     addsha = sha;
+    console.log('adding add function... ' + addsha);
 
     client.send_command('script', ['load', checksource], function(err, sha) {
       if (err) {
@@ -133,7 +134,7 @@ function load() {
 
       checksha = sha;
 
-      console.log('adding...');
+      console.log('adding check function... ' + checksha);
 
       start = Date.now();
 

@@ -62,8 +62,8 @@ client.send_command('script', ['load', checksource], function(err, sha) {
   }
 
   checksha = sha;
-  
-  console.log('checking...');
+
+  console.log('adding check function... ' + checksha);
 
   start = Date.now();
 

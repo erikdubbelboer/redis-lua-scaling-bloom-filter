@@ -63,7 +63,7 @@ function cas(n) {
     console.log((found / (count / 100)) + '% false positives');
 
     console.log('checking...');
-    
+
     start = Date.now();
 
     check(0);
@@ -96,6 +96,9 @@ function load() {
 
     cassha = sha;
 
+    console.log('adding cas function... ' + cassha);
+
+
     client.send_command('script', ['load', checksource], function(err, sha) {
       if (err) {
         throw err;
@@ -103,7 +106,7 @@ function load() {
 
       checksha = sha;
 
-      console.log('casing...');
+      console.log('adding check function... ' + checksha);
 
       start = Date.now();
 
