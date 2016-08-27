@@ -60,7 +60,7 @@ function add(n) {
     console.log(sec + ' per second');
 
     console.log('checking...');
-    
+
     start = Date.now();
 
     check(0);
@@ -88,6 +88,8 @@ function load() {
     }
 
     addsha = sha;
+    console.log('adding add function... ' + addsha);
+
 
     client.send_command('script', ['load', checksource], function(err, sha) {
       if (err) {
@@ -96,7 +98,7 @@ function load() {
 
       checksha = sha;
 
-      console.log('adding...');
+      console.log('adding check function... ' + checksha);
 
       start = Date.now();
 

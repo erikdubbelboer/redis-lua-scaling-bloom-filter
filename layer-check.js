@@ -55,7 +55,7 @@ function check(n) {
     srand.random();
     ++added;
   }
-  
+
   var id = Math.ceil(srand.random() * 4000000000);
 
   client.evalsha(checksha, 0, 'test', entries, precision, id, function(err, layer) {
@@ -83,7 +83,7 @@ client.send_command('script', ['load', checksource], function(err, sha) {
 
   checksha = sha;
 
-  console.log('checking...');
+  console.log('adding check function... ' + checksha);
 
   start = Date.now();
 
