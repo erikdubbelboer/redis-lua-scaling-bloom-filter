@@ -18,7 +18,7 @@ The layered filter has a maximum number of 32 layers. You can modify this in the
 
 The `add.lua` script adds a new element to the filter. It will create the filter when it doesn't exist yet.
 
-`cas.lua` does a Check And Set, this will not add the element if it doesn't already exist.
+`cas.lua` does a Check And Set, this will not add the element if it already exist.
 `cas.lua` will return 0 if the element is added, or 1 if the element was already in the filter.
 Since we use a scaling filter adding an element using `add.lua` might cause the element
 to exist in multiple parts of the filter at the same time. `cas.lua` prevents this.
