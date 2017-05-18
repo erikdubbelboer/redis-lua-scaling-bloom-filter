@@ -16,7 +16,7 @@ local hash = redis.sha1hex(ARGV[4])
 
 -- This uses a variation on:
 -- 'Less Hashing, Same Performance: Building a Better Bloom Filter'
--- http://www.eecs.harvard.edu/~kirsch/pubs/bbbf/esa06.pdf
+-- https://www.eecs.harvard.edu/~michaelm/postscripts/tr-02-05.pdf
 local h = { }
 h[0] = tonumber(string.sub(hash, 1 , 8 ), 16)
 h[1] = tonumber(string.sub(hash, 9 , 16), 16)
