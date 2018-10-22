@@ -30,6 +30,16 @@ console.log('count     = ' + count);
 srand.seed(1);
 
 
+function randomstring(length) {
+  var dict = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`1234567890-=~!@#$%^&*()_+[]{};:",./<>?';
+  var r    = '';
+  for (var i = 0; i < length; i++) {
+    r += dict[Math.floor(srand.random() * dict.length)];
+  }
+  return r;
+}
+
+
 function check(n) {
   if (n == count) {
     var sec = count / ((Date.now() - start) / 1000);
@@ -67,7 +77,7 @@ function add(n) {
     return;
   }
 
-  var id = Math.ceil(srand.random() * 4000000000);
+  var id = randomstring(10);
 
   added.push(id);
 
